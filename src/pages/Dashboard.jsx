@@ -10,13 +10,13 @@ const NAV_HEIGHT = 64;
 
 function Dashboard() {
   const { user, loading } = useContext(AuthContext);
-  const { categories, loading: catLoading, addCategory, removeCategory } = useCategories();
+  const { categories = [], loading: catLoading, addCategory, removeCategory } = useCategories();
 
   const [openCategory, setOpenCategory] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [showUserCategories, setShowUserCategories] = useState(false);
 
-  const toggleCategory = id => setOpenCategory(openCategory === id ? null : id);
+  const toggleCategory = (id) => setOpenCategory(openCategory === id ? null : id);
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
@@ -28,13 +28,13 @@ function Dashboard() {
     }
   };
 
-  const handleDeleteCategory = async id => {
+  const handleDeleteCategory = async (id) => {
     await removeCategory(id);
     if (openCategory === id) setOpenCategory(null);
   };
 
   const userCreatedCategories = useMemo(
-    () => categories.filter(cat => cat.user_id),
+    () => (Array.isArray(categories) ? categories.filter((cat) => cat.user_id) : []),
     [categories]
   );
 
@@ -73,7 +73,7 @@ function Dashboard() {
           <h2 className="text-xl font-semibold text-gray-100">Categories</h2>
           {userCreatedCategories.length > 0 ? (
             <button
-              onClick={() => setShowUserCategories(prev => !prev)}
+              onClick={() => setShowUserCategories((prev) => !prev)}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white shadow-md transition"
             >
               {showUserCategories ? "Close Sidebar" : "My Categories"}
@@ -92,7 +92,7 @@ function Dashboard() {
         <div className="flex flex-col lg:flex-row lg:space-x-6">
           <div className="flex-1 space-y-4">
             {categories.length > 0 ? (
-              categories.map(category => (
+              categories.map((category) => (
                 <CategorySection
                   key={category.id}
                   category={category}
