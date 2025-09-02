@@ -1,45 +1,57 @@
 // src/services/auth.js
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-if (!API_URL) {
-  console.error('VITE_API_URL is not defined in .env');
-}
+if (!API_URL) console.error("VITE_API_URL is not defined in .env");
 
+// Signup
 export const signup = async (username, email, password) => {
   try {
-    const response = await axios.post(
+    const res = await axios.post(
       `${API_URL}/auth/signup`,
-      { username, email, password },   // <-- include email
+      { username, email, password },
       { withCredentials: true }
     );
-    return response.data;
-  } catch (error) {
-    console.error('Signup error:', error.response?.data || error.message);
-    throw error;
+    return res.data; // usually some success message
+  } catch (err) {
+    console.error("Signup error:", err.response?.data || err.message);
+    throw err;
   }
 };
 
+// Login
 export const login = async (identifier, password) => {
   try {
     const res = await axios.post(
       `${API_URL}/auth/login`,
-      { loginInput: identifier, password }, // loginInput matches backend
+      { loginInput: identifier, password },
       { withCredentials: true }
     );
-    return res.data.user;
-  } catch (error) {
-    console.error('Login error:', error.response?.data || error.message);
-    throw error;
+    return res.data; // return whole object, AuthContext will call /auth/me to fetch user
+  } catch (err) {
+    console.error("Login error:", err.response?.data || err.message);
+    throw err;
   }
 };
 
+// Logout
 export const logout = async () => {
-  await axios.get(`${API_URL}/auth/logout`, { withCredentials: true });
+  try {
+    await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+  } catch (err) {
+    console.error("Logout error:", err.response?.data || err.message);
+    throw err;
+  }
 };
 
+// Get current user
 export const getCurrentUser = async () => {
-  const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
-  return res.data.user;
+  try {
+    const res = await axios.get(`${API_URL}/auth/me`, { withCredentials: true });
+    return res.data; // should be the user object from backend
+  } catch (err) {
+    console.error("Get current user error:", err.response?.data || err.message);
+    throw err;
+  }
 };
