@@ -1,72 +1,41 @@
 import { useContext } from 'react';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
+import AuthForm from './AuthForm.jsx';
 import { AuthContext } from '../../context/AuthContext.jsx';
+import * as Yup from 'yup';
 import { useNavigate } from 'react-router-dom';
 
 const validationSchema = Yup.object({
-  username: Yup.string().min(3, 'Username must be at least 3 characters').required('Username is required'),
-  password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  username: Yup.string().min(3).required('Username is required'),
+  email: Yup.string().email('Invalid email').required('Email is required'),
+  password: Yup.string().min(6).required('Password is required'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password'), null], 'Passwords must match')
+    .required('Confirm your password'),
 });
 
 function SignupForm() {
-  const { handleSignup } = useContext(AuthContext);
+  const { handleSignup, handleGoogleSignup, handleGithubSignup } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const initialValues = {
-    username: '',
-    password: '',
-  };
+  const initialValues = { username: '', email: '', password: '', confirmPassword: '' };
 
-  const onSubmit = async (values, { setSubmitting, setFieldError }) => {
+  const onSubmit = async (values, { setSubmitting }) => {
     try {
-      await handleSignup(values.username, values.password);
-      navigate('/login');
-    } catch (err) {
-      console.error('Signup form error:', err.response?.data || err.message);
-      setFieldError('username', err.response?.data?.error || 'Signup failed');
+      await handleSignup(values.username, values.email, values.password);
+      navigate('/dashboard');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Formik
+    <AuthForm
+      type="signup"
       initialValues={initialValues}
       validationSchema={validationSchema}
       onSubmit={onSubmit}
-    >
-      {({ isSubmitting }) => (
-        <Form className="space-y-4 max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
-          <div>
-            <label className="block text-sm font-medium">Username</label>
-            <Field
-              name="username"
-              className="w-full p-2 border rounded"
-              placeholder="Username"
-            />
-            <ErrorMessage name="username" component="p" className="text-red-500 text-sm" />
-          </div>
-          <div>
-            <label className="block text-sm font-medium">Password</label>
-            <Field
-              type="password"
-              name="password"
-              className="w-full p-2 border rounded"
-              placeholder="Password"
-            />
-            <ErrorMessage name="password" component="p" className="text-red-500 text-sm" />
-          </div>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-gray-400"
-          >
-            Signup
-          </button>
-        </Form>
-      )}
-    </Formik>
+      socialLoginHandlers={{ google: handleGoogleSignup, github: handleGithubSignup }}
+    />
   );
 }
 

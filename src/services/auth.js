@@ -1,3 +1,4 @@
+// src/services/auth.js
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -6,9 +7,13 @@ if (!API_URL) {
   console.error('VITE_API_URL is not defined in .env');
 }
 
-export const signup = async (username, password) => {
+export const signup = async (username, email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/signup`, { username, password }, { withCredentials: true });
+    const response = await axios.post(
+      `${API_URL}/auth/signup`,
+      { username, email, password },   // <-- include email
+      { withCredentials: true }
+    );
     return response.data;
   } catch (error) {
     console.error('Signup error:', error.response?.data || error.message);
@@ -16,9 +21,13 @@ export const signup = async (username, password) => {
   }
 };
 
-export const login = async (username, password) => {
+export const login = async (identifier, password) => {
   try {
-    const res = await axios.post(`${API_URL}/auth/login`, { username, password }, { withCredentials: true });
+    const res = await axios.post(
+      `${API_URL}/auth/login`,
+      { loginInput: identifier, password }, // loginInput matches backend
+      { withCredentials: true }
+    );
     return res.data.user;
   } catch (error) {
     console.error('Login error:', error.response?.data || error.message);

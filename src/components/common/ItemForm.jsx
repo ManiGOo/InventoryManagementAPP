@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
@@ -10,17 +11,22 @@ const validationSchema = Yup.object({
 });
 
 function ItemForm({ category_id, onSubmit, initialData = {} }) {
+  const [preview, setPreview] = useState(initialData.image_url || null);
+
   const initialValues = {
     name: initialData.name || "",
     description: initialData.description || "",
     price: initialData.price || "",
-    // category_id comes from props or initialData, no need for UI input
     category_id: initialData.category_id || category_id || "",
+    image: null,
   };
 
   const handleSubmit = async (values, { setSubmitting, resetForm }) => {
     const formData = new FormData();
-    Object.entries(values).forEach(([key, val]) => val != null && formData.append(key, val));
+    formData.append("name", values.name);
+    formData.append("description", values.description);
+    formData.append("price", values.price);
+    formData.append("category_id", values.category_id);
     if (values.image) formData.append("image", values.image);
 
     try {
@@ -31,6 +37,19 @@ function ItemForm({ category_id, onSubmit, initialData = {} }) {
       toast.error("Failed to save item");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleImageChange = (e, setFieldValue) => {
+    const file = e.currentTarget.files[0];
+    setFieldValue("image", file);
+
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setPreview(null);
     }
   };
 
@@ -81,12 +100,19 @@ function ItemForm({ category_id, onSubmit, initialData = {} }) {
               <label className="block font-medium mb-1">Image</label>
               <input
                 type="file"
-                onChange={e => setFieldValue("image", e.currentTarget.files[0])}
+                accept="image/*"
+                onChange={(e) => handleImageChange(e, setFieldValue)}
                 className="w-full rounded-md px-3 py-2 file:mr-4 file:py-2 file:px-4 file:rounded-md file:bg-blue-500 file:text-white hover:file:bg-blue-600"
               />
+              {preview && (
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="mt-2 h-32 w-full object-cover rounded-md border border-gray-700"
+                />
+              )}
             </div>
 
-            {/* Hidden Category (still sent with form) */}
             <Field type="hidden" name="category_id" />
 
             <button
