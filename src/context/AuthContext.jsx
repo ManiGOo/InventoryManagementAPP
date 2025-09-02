@@ -6,7 +6,7 @@ export const AuthContext = createContext(null);
 
 // Axios instance pointing to backend
 const api = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL ,
+  baseURL: import.meta.env.VITE_API_URL ,
   withCredentials: true, // important for sending session cookies
 });
 
