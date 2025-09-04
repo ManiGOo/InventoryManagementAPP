@@ -1,5 +1,10 @@
+// src/contexts/CategoriesContext.js
 import { createContext, useContext, useState, useEffect } from "react";
-import { getCategories, createCategory as apiCreateCategory, deleteCategory as apiDeleteCategory } from "../services/api";
+import {
+  getCategories,
+  createCategory as apiCreateCategory,
+  deleteCategory as apiDeleteCategory,
+} from "../services/api";
 import { toast } from "react-toastify";
 
 const CategoriesContext = createContext();
@@ -8,49 +13,60 @@ export const CategoriesProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 🔹 Fetch categories on mount
   useEffect(() => {
-    async function fetchCategories() {
+    const fetchCategories = async () => {
       try {
-        const data = await getCategories();
+        const data = await getCategories(); // cookies sent automatically
         setCategories(data);
-      } catch {
-        toast.error("Failed to load categories");
+      } catch (err) {
+        toast.error(err.response?.data?.error || "Failed to load categories");
       } finally {
         setLoading(false);
       }
-    }
+    };
     fetchCategories();
   }, []);
 
+  // 🔹 Add a new category
   const addCategory = async (name) => {
-    if (!name.trim()) return null;
+    const trimmed = name.trim();
+    if (!trimmed) return null;
+
     try {
-      const newCat = await apiCreateCategory(name.trim());
-      setCategories(prev => [...prev, newCat]); // ✅ update state here
+      const newCat = await apiCreateCategory(trimmed);
+      setCategories((prev) => [...prev, newCat]);
       toast.success("Category added");
       return newCat;
-    } catch {
-      toast.error("Failed to add category");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to add category");
       return null;
     }
   };
 
+  // 🔹 Remove category
   const removeCategory = async (id) => {
-    if (!window.confirm("Delete this category?")) return;
+    if (!window.confirm("Delete this category?")) return false;
+
     try {
       await apiDeleteCategory(id);
-      setCategories(prev => prev.filter(cat => cat.id !== id)); // ✅ update state here
+      setCategories((prev) => prev.filter((cat) => cat.id !== id));
       toast.success("Category deleted");
-    } catch {
-      toast.error("Failed to delete category");
+      return true;
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to delete category");
+      return false;
     }
   };
 
   return (
-    <CategoriesContext.Provider value={{ categories, loading, addCategory, removeCategory }}>
+    <CategoriesContext.Provider
+      value={{ categories, loading, addCategory, removeCategory }}
+    >
       {children}
     </CategoriesContext.Provider>
   );
 };
 
+// Custom hook for easier consumption
 export const useCategories = () => useContext(CategoriesContext);

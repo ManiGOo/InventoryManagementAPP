@@ -1,36 +1,47 @@
-import axios from "axios";
+// src/services/auth.js
+import { api } from "../services/api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-if (!API_URL) console.error("VITE_API_URL is not defined in .env");
-
-// Signup
+// ===== Signup =====
 export const signup = async (username, email, password) => {
-  const res = await axios.post(`${API_URL}/auth/signup`, { username, email, password });
-  const { token, user } = res.data;
-  if (token) localStorage.setItem("token", token); // store JWT
-  return { user, token };
+  try {
+    const res = await api.post("/auth/signup", { username, email, password });
+    // backend sets HTTP-only cookie, no localStorage needed
+    return res.data.user;
+  } catch (err) {
+    console.error("Signup error:", err.response?.data || err.message);
+    throw err;
+  }
 };
 
-// Login
+// ===== Login =====
 export const login = async (identifier, password) => {
-  const res = await axios.post(`${API_URL}/auth/login`, { loginInput: identifier, password });
-  const { token, user } = res.data;
-  if (token) localStorage.setItem("token", token);
-  return { user, token };
+  try {
+    const res = await api.post("/auth/login", { loginInput: identifier, password });
+    // backend sets HTTP-only cookie
+    return res.data.user;
+  } catch (err) {
+    console.error("Login error:", err.response?.data || err.message);
+    throw err;
+  }
 };
 
-// Logout
+// ===== Logout =====
 export const logout = async () => {
-  localStorage.removeItem("token"); // remove JWT
+  try {
+    await api.post("/auth/logout"); // clears cookie in backend
+  } catch (err) {
+    console.error("Logout error:", err.response?.data || err.message);
+    throw err;
+  }
 };
 
-// Get current user
+// ===== Get current user =====
 export const getCurrentUser = async () => {
-  const token = localStorage.getItem("token");
-  if (!token) throw new Error("No token found");
-  const res = await axios.get(`${API_URL}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  try {
+    const res = await api.get("/auth/me"); // sends cookie automatically
+    return res.data.user;
+  } catch (err) {
+    console.error("Get current user error:", err.response?.data || err.message);
+    throw err;
+  }
 };

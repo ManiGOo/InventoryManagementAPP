@@ -1,33 +1,27 @@
+// src/contexts/AuthContext.js
 import { createContext, useState, useEffect } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { getCurrentUser, login, signup, logout } from "../services/auth";
 
 export const AuthContext = createContext(null);
 
-// Axios instance pointing to backend
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ,
-  withCredentials: true, // important for sending session cookies
-});
-
-export const AuthProvider = ({ children }) => {
+const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // 🔹 Re-fetch the current user from backend
+  // 🔹 Refresh user from backend (cookie-based)
   const refreshUser = async () => {
     try {
-      const res = await api.get("/auth/me");
-      setUser(res.data);
-      return res.data;
-    } catch (err) {
-      console.log("No active session:", err.response?.status || err.message);
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      return currentUser;
+    } catch {
       setUser(null);
       return null;
     }
   };
 
-  // 🔹 Check session on mount
+  // 🔹 Run once on mount
   useEffect(() => {
     (async () => {
       await refreshUser();
@@ -35,15 +29,15 @@ export const AuthProvider = ({ children }) => {
     })();
   }, []);
 
-  // 🔹 Login (username OR email as identifier)
+  // 🔹 Login
   const handleLogin = async (identifier, password) => {
     try {
-      await api.post("/auth/login", { loginInput: identifier, password });
-      const userData = await refreshUser(); // sync after login
+      const loggedInUser = await login(identifier, password); // cookie set by backend
+      setUser(loggedInUser);
       toast.success("Logged in successfully!");
-      return userData;
+      return loggedInUser;
     } catch (err) {
-      const message = err.response?.data?.message || "Login failed";
+      const message = err.response?.data?.error || "Login failed";
       toast.error(message);
       throw err;
     }
@@ -52,10 +46,12 @@ export const AuthProvider = ({ children }) => {
   // 🔹 Signup
   const handleSignup = async (username, email, password) => {
     try {
-      await api.post("/auth/signup", { username, email, password });
-      toast.success("Signed up successfully! Please log in.");
+      const newUser = await signup(username, email, password); // cookie set by backend
+      setUser(newUser);
+      toast.success("Signed up and logged in!");
+      return newUser;
     } catch (err) {
-      const message = err.response?.data?.message || "Signup failed";
+      const message = err.response?.data?.error || "Signup failed";
       toast.error(message);
       throw err;
     }
@@ -64,11 +60,12 @@ export const AuthProvider = ({ children }) => {
   // 🔹 Logout
   const handleLogout = async () => {
     try {
-      await api.post("/auth/logout");
+      await logout(); // clears cookie on backend
       setUser(null);
       toast.success("Logged out successfully!");
     } catch (err) {
       toast.error("Logout failed");
+      console.error(err);
     }
   };
 
@@ -87,3 +84,5 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+
+export default AuthProvider;
