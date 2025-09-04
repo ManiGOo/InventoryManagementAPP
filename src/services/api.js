@@ -9,10 +9,9 @@ console.log("🌐 Using API:", API_URL);
 
 // Create axios instance
 const api = axios.create({
-  baseURL: API_URL,
-  withCredentials: true, // 🔑 important for sending/receiving cookies
+  baseURL: "https://inventorymanagementapp-backend.onrender.com",
+  withCredentials: true, // crucial
 });
-
 // ===== Items =====
 export const getItems = async () => {
   const res = await api.get("/items");
@@ -87,5 +86,4 @@ export const getCurrentUser = async () => {
   const res = await api.get("/auth/me");
   return res.data;
 };
-
 export default api;
