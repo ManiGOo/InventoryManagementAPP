@@ -1,15 +1,16 @@
+// src/utils/api.js
 import axios from "axios";
 
+// Backend URL (different in local vs production)
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-if (!API_URL) {
-  console.error("VITE_API_URL is not defined in .env");
-}
+// Log which API we are hitting (debugging)
+console.log("🌐 Using API:", API_URL);
 
-// Create axios instance to avoid repeating config
+// Create axios instance
 const api = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // 🔑 required for sessions
+  withCredentials: true, // 🔑 important for sending/receiving cookies
 });
 
 // ===== Items =====
@@ -73,13 +74,12 @@ export const signup = async (username, email, password) => {
 };
 
 export const login = async (loginInput, password) => {
-  // ✅ match backend LocalStrategy expects { loginInput, password }
+  // 🔑 Must match backend LocalStrategy
   const res = await api.post("/auth/login", { loginInput, password });
   return res.data;
 };
 
 export const logout = async () => {
-  // ✅ backend uses GET /auth/logout
   await api.get("/auth/logout");
 };
 
@@ -87,3 +87,5 @@ export const getCurrentUser = async () => {
   const res = await api.get("/auth/me");
   return res.data;
 };
+
+export default api;
