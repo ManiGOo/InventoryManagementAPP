@@ -1,17 +1,23 @@
 // src/utils/api.js
 import axios from "axios";
 
-// Backend URL (different in local vs production)
+// Backend URL (local vs production)
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-// Log which API we are hitting (debugging)
-console.log("🌐 Using API:", API_URL);
 
 // Create axios instance
 const api = axios.create({
-  baseURL: "https://inventorymanagementapp-backend.onrender.com",
-  withCredentials: true, // crucial
+  baseURL: API_URL,
 });
+
+// Interceptor to attach JWT token automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token"); // store JWT here
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // ===== Items =====
 export const getItems = async () => {
   const res = await api.get("/items");
@@ -69,21 +75,23 @@ export const deleteCategory = async (id) => {
 // ===== Auth =====
 export const signup = async (username, email, password) => {
   const res = await api.post("/auth/signup", { username, email, password });
+  if (res.data.token) localStorage.setItem("token", res.data.token); // save JWT
   return res.data;
 };
 
 export const login = async (loginInput, password) => {
-  // 🔑 Must match backend LocalStrategy
   const res = await api.post("/auth/login", { loginInput, password });
+  if (res.data.token) localStorage.setItem("token", res.data.token); // save JWT
   return res.data;
 };
 
 export const logout = async () => {
-  await api.get("/auth/logout");
+  localStorage.removeItem("token"); // remove JWT
 };
 
 export const getCurrentUser = async () => {
   const res = await api.get("/auth/me");
   return res.data;
 };
+
 export default api;
