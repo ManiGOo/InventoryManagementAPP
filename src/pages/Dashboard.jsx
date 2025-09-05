@@ -38,37 +38,43 @@ function Dashboard() {
     [categories]
   );
 
-  if (loading || catLoading)
+  if (loading || catLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-900 text-gray-300">
         <p>Loading dashboard...</p>
       </div>
     );
+  }
 
-  if (!user)
+  if (!user) {
     return (
       <div className="flex justify-center items-center h-screen bg-gray-900 text-gray-300">
         <p>
-          Please <a href="/login" className="text-blue-400 underline">login</a> to view the dashboard.
+          Please{" "}
+          <a href="/login" className="text-blue-400 underline">
+            login
+          </a>{" "}
+          to view the dashboard.
         </p>
       </div>
     );
+  }
 
   return (
     <div className="bg-gray-900 text-gray-200 min-h-screen">
       {/* Navbar */}
       <Navbar />
 
-      {/* Main content with top padding equal to nav height */}
+      {/* Main content */}
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
-        className="p-6 pt-[80px] relative"
+        className="p-6 pt-[80px] max-w-5xl mx-auto"
       >
         <h1 className="text-4xl font-bold text-white mb-6">Inventory Dashboard</h1>
 
-        {/* Categories toolbar */}
+        {/* Toolbar */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-100">Categories</h2>
           {userCreatedCategories.length > 0 ? (
@@ -88,25 +94,23 @@ function Dashboard() {
           )}
         </div>
 
-        {/* Main content */}
-        <div className="flex flex-col lg:flex-row lg:space-x-6">
-          <div className="flex-1 space-y-4">
-            {categories.length > 0 ? (
-              categories.map((category) => (
-                <CategorySection
-                  key={category.id}
-                  category={category}
-                  isOpen={openCategory === category.id}
-                  toggle={() => toggleCategory(category.id)}
-                />
-              ))
-            ) : (
-              <p className="text-gray-400">No categories available.</p>
-            )}
-          </div>
+        {/* Category Accordions - vertical stack */}
+        <div className="flex flex-col gap-4">
+          {categories.length > 0 ? (
+            categories.map((category) => (
+              <CategorySection
+                key={category.id}
+                category={category}
+                isOpen={openCategory === category.id}
+                toggle={() => toggleCategory(category.id)}
+              />
+            ))
+          ) : (
+            <p className="text-gray-400 italic">No categories available.</p>
+          )}
         </div>
 
-        {/* Right sidebar */}
+        {/* Sidebar for user categories */}
         <AnimatePresence>
           {showUserCategories && (
             <>

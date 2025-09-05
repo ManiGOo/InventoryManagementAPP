@@ -12,86 +12,100 @@ function Navbar() {
   return (
     <>
       {/* Navbar */}
-      <nav className="bg-gray-900 text-gray-100 p-4 shadow-md fixed top-0 left-0 right-0 z-50 h-16">
-        <div className="max-w-7xl mx-auto flex justify-center relative h-full">
-          {/* Centered Logo */}
+      <nav className="bg-gray-900 text-gray-100 px-6 shadow-md fixed top-0 left-0 right-0 z-50 h-16">
+        <div className="max-w-7xl mx-auto flex justify-between items-center h-full">
+          {/* Logo */}
           <Link
             to="/"
-            className="text-2xl font-bold hover:text-gray-300 transition flex items-center h-full"
+            className="text-xl font-bold hover:text-gray-300 transition"
           >
             Inventory App
           </Link>
 
-          {/* Floating Menu Button */}
-          <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center hover:bg-gray-600 transition text-white font-bold"
-            >
-              ☰
-            </button>
+          {/* Hamburger (always visible) */}
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className="flex flex-col justify-center items-center w-10 h-10 bg-gray-800 rounded-lg hover:bg-gray-700 transition relative"
+          >
+            <motion.span
+              animate={
+                menuOpen ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }
+              }
+              className="block w-6 h-0.5 bg-white rounded mb-1"
+            />
+            <motion.span
+              animate={menuOpen ? { opacity: 0 } : { opacity: 1 }}
+              className="block w-6 h-0.5 bg-white rounded mb-1"
+            />
+            <motion.span
+              animate={
+                menuOpen ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }
+              }
+              className="block w-6 h-0.5 bg-white rounded"
+            />
+          </button>
+        </div>
 
-            <AnimatePresence>
-              {menuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 50 }}
-                  transition={{ duration: 0.2 }}
-                  className="mt-2 bg-gray-800 rounded-xl shadow-lg absolute right-0 w-40 flex flex-col overflow-hidden"
-                >
+        {/* Dropdown menu */}
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="absolute top-16 right-6 bg-gray-800 rounded-xl shadow-lg w-44 overflow-hidden flex flex-col"
+            >
+              <Link
+                to="/"
+                className="px-4 py-2 hover:bg-gray-700 transition"
+                onClick={() => setMenuOpen(false)}
+              >
+                Home
+              </Link>
+              {user ? (
+                <>
                   <Link
-                    to="/"
+                    to="/dashboard"
                     className="px-4 py-2 hover:bg-gray-700 transition"
                     onClick={() => setMenuOpen(false)}
                   >
-                    Home
+                    Dashboard
                   </Link>
-                  {user ? (
-                    <>
-                      <Link
-                        to="/dashboard"
-                        className="px-4 py-2 hover:bg-gray-700 transition"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Dashboard
-                      </Link>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setMenuOpen(false);
-                        }}
-                        className="px-4 py-2 text-left w-full hover:bg-gray-700 transition"
-                      >
-                        Logout
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        to="/login"
-                        className="px-4 py-2 hover:bg-gray-700 transition"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Login
-                      </Link>
-                      <Link
-                        to="/signup"
-                        className="px-4 py-2 hover:bg-gray-700 transition"
-                        onClick={() => setMenuOpen(false)}
-                      >
-                        Signup
-                      </Link>
-                    </>
-                  )}
-                </motion.div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setMenuOpen(false);
+                    }}
+                    className="px-4 py-2 text-left w-full hover:bg-gray-700 transition"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 hover:bg-gray-700 transition"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="px-4 py-2 hover:bg-gray-700 transition"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Signup
+                  </Link>
+                </>
               )}
-            </AnimatePresence>
-          </div>
-        </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
-      {/* Spacer to push content below navbar */}
+      {/* Spacer */}
       <div style={{ height: NAV_HEIGHT }} />
     </>
   );
